@@ -24,7 +24,7 @@
 
 - name: Copy fabric mods to remote directory (from local share)
   synchronize:
-    src: /media/shared/misc/fabric-mods/
+    src: "{{ config_location }}/fabric-mods/"
     dest: "{{ docker_compose_generator_output_path }}/fabric-mods"
     delete: yes
 

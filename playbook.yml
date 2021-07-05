@@ -1,11 +1,9 @@
 ---
-# Run command below to run playbook
-# ansible-playbook --ask-vault-pass playbook.yml
-
 - hosts: all
   vars_files:
     - 'vars/vault.yaml'
     - 'vars/plugins.yml'
+    - 'vars/remote-location.yml'
 
   pre_tasks:
 
@@ -40,7 +38,7 @@
     
   - name: Copy over whitelist.json file to servers
     copy:
-      src: /media/shared/misc/whitelist.json
+      src: "{{ config_location }}/whitelist.json"
       dest: "{{ docker_compose_generator_output_path }}/data/{{ item.service_name }}/whitelist.json"
       owner: "{{ docker_compose_generator_uid }}"
       group: "{{ docker_compose_generator_gid }}"
