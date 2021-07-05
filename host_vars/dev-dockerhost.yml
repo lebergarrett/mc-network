@@ -10,12 +10,12 @@ proxy_priority_server: "lobby"
 
 # Variables that are used in configuration below
 mc_connection_port: 25565
-bedrock_connection_port: 19132
-mc_version: "1.16.5"
+#bedrock_connection_port: 19132
+mc_version: "1.17"
 mc_ops: "Kumpy,Fett32"
 
 # ironicbadger.docker_compose_generator
-docker_compose_generator_output_path: "~/archive/bungee"
+docker_compose_generator_output_path: "~/docker/bungee"
 
 containers:
 # This container is used for the luckperms database so that the server network has one central permissions system.
@@ -36,77 +36,58 @@ containers:
 # This container is the waterfall proxy, it handles player connections to all servers in the network
   - service_name: mc-waterfall-proxy
   # Refer to itzg/docker-bungeecord github for documentation on env variables and container configuration below
-    image: itzg/bungeecord
+    image: itzg/bungeecord:latest
     active: true
     environment:
       - "TYPE=WATERFALL"
     ports:
       - "{{ mc_connection_port }}:25577"
-      - "{{ bedrock_connection_port }}:19132/udp"
+      #- "{{ bedrock_connection_port }}:19132/udp"
     volumes:
       - "./data/mc-waterfall-proxy:/server"
       - "./bungee-plugins:/plugins"
     depends_on:
+      - lobby
       - fabric
+      - creative
+      - fabric-creative
     restart: unless-stopped
+
 # This container is the first server you login to, it acts as a hub to access the other servers
 # Ensure that the server type is always the first environment variable for proper configuration
-  - service_name: vanilla
-    image: itzg/minecraft-server
+  - service_name: lobby
+  # Refer to itzg/docker-minecraft-server github for documentation on env variables and container configuration below
+    image: itzg/minecraft-server:java16
     active: true
-    restricted: true
-    environment:
-      - "TYPE=FABRIC"
-      - "OVERRIDE_SERVER_PROPERTIES=true"
-      - "EULA=true"
-      - "ONLINE_MODE=false"
-      - "VERSION={{ mc_version }}"
-      - "MEMORY=3G"
-      - "USE_AIKAR_FLAGS=true"
-      - "OPS={{ mc_ops }}"
-      - "DIFFICULTY=hard"
-      - "PVP=true"
-      - "LEVEL=world"
-      - "SPAWN_PROTECTION=0"
-      - "MAX_WORLD_SIZE=15000"
-      - "ENFORCE_WHITELIST=true"
-      - "REMOVE_OLD_MODS=true"
-      - "PLUGINS_SYNC_UPDATE=false"
-    # List mods to download below"
-    #- "MODS=https://github.com/OKTW-Network/FabricProxy/releases/download/v1.3.3/FabricProxy-1.3.3.jar"
-    volumes:
-      - "./fabric-mods:/mods"
-      - "./data/vanilla:/data"
-    restart: unless-stopped
-  - service_name: hardcore-intermediate
-    image: itzg/minecraft-server
-    active: true
-    restricted: true
+  # resticted refers to the waterfall config, which would hide server from '/server' command and only allow authorized users access
+    restricted: false
     environment:
       - "TYPE=PAPER"
+      - "SERVER_NAME=lobby"
       - "OVERRIDE_SERVER_PROPERTIES=true"
       - "EULA=true"
       - "ONLINE_MODE=false"
       - "VERSION={{ mc_version }}"
-      - "MEMORY=1G"
-      - "USE_AIKAR_FLAGS=true"
+      - "MEMORY=512M"
       - "OPS={{ mc_ops }}"
-      - "DIFFICULTY=hard"
-      - "HARDCORE=true"
-      - "SPAWN_MONSTERS=true"
+      - "DIFFICULTY=peaceful"
       - "PVP=false"
+      - "LEVEL=LobbyWorld"
       - "SPAWN_PROTECTION=0"
-      - "MAX_WORLD_SIZE=5000"
+      - "MAX_WORLD_SIZE=100"
       - "ENFORCE_WHITELIST=true"
       - "PLUGINS_SYNC_UPDATE=false"
-    # List mods to download below"
-    #  - "MODS=https://ci.lucko.me/job/LuckPerms/1173/artifact/bukkit/build/libs/LuckPerms-Bukkit-5.2.8.jar"
+    # List plugins to download below
+    #- "MODS=https://ci.lucko.me/job/LuckPerms/1173/artifact/bukkit/build/libs/LuckPerms-Bukkit-5.2.8.jar"
     volumes:
+    # Optional method to install plugins on server. Add .jar files to ./plugins directory
+    # The downside to this option is that they cannot auto update
       - "./plugins:/plugins"
-      - "./data/hardcore-intermediate:/data"
+      - "./data/lobby:/data"
     restart: unless-stopped
-  - service_name: hardcore-advanced
-    image: itzg/minecraft-server
+
+  - service_name: fabric
+    image: itzg/minecraft-server:java16
     active: true
     restricted: false
     environment:
@@ -115,12 +96,65 @@ containers:
       - "EULA=true"
       - "ONLINE_MODE=false"
       - "VERSION={{ mc_version }}"
-      - "MEMORY=3G"
-      - "USE_AIKAR_FLAGS=true"
+      - "MEMORY=4G"
       - "OPS={{ mc_ops }}"
       - "DIFFICULTY=hard"
-      - "HARDCORE=true"
-      - "SPAWN_MONSTERS=true"
+      - "PVP=true"
+      - "LEVEL=1_11 Kumpback"
+      - "SPAWN_PROTECTION=0"
+      - "VIEW_DISTANCE=18"
+      - "MAX_WORLD_SIZE=15000"
+      - "ENFORCE_WHITELIST=true"
+      - "REMOVE_OLD_MODS=true"
+      - "PLUGINS_SYNC_UPDATE=false"
+    # List mods to download below"
+    #- "MODS=https://github.com/OKTW-Network/FabricProxy/releases/download/v1.3.3/FabricProxy-1.3.3.jar"
+    volumes:
+      - "./fabric-mods:/mods"
+      - "./data/fabric:/data"
+    restart: unless-stopped
+
+  - service_name: creative
+    image: itzg/minecraft-server:java16
+    active: true
+    restricted: false
+    environment:
+      - "TYPE=PAPER"
+      - "OVERRIDE_SERVER_PROPERTIES=true"
+      - "EULA=true"
+      - "ONLINE_MODE=false"
+      - "VERSION={{ mc_version }}"
+      - "MEMORY=1G"
+      - "OPS={{ mc_ops }}"
+      - "DIFFICULTY=peaceful"
+      - "PVP=false"
+      - "LEVEL=CreativeWorld"
+      - "SPAWN_PROTECTION=0"
+      - "MAX_WORLD_SIZE=1000"
+      - "FORCE_GAMEMODE=true"
+      - "MODE=creative"
+      - "ENFORCE_WHITELIST=true"
+      - "PLUGINS_SYNC_UPDATE=false"
+    # List mods to download below"
+    # - "MODS=https://ci.lucko.me/job/LuckPerms/1173/artifact/bukkit/build/libs/LuckPerms-Bukkit-5.2.8.jar"
+    volumes:
+      - "./plugins:/plugins"
+      - "./data/creative:/data"
+
+  - service_name: leber
+    image: itzg/minecraft-server:java16
+    active: false
+    restricted: false
+    environment:
+      - "TYPE=PAPER"
+      - "OVERRIDE_SERVER_PROPERTIES=true"
+      - "EULA=true"
+      - "ONLINE_MODE=false"
+      - "VERSION={{ mc_version }}"
+      - "MEMORY=1G"
+      - "OPS={{ mc_ops }}"
+      - "DIFFICULTY=easy"
+      - "SPAWN_MONSTERS=false"
       - "PVP=false"
       - "SPAWN_PROTECTION=0"
       - "MAX_WORLD_SIZE=5000"
@@ -130,5 +164,34 @@ containers:
     #  - "MODS=https://ci.lucko.me/job/LuckPerms/1173/artifact/bukkit/build/libs/LuckPerms-Bukkit-5.2.8.jar"
     volumes:
       - "./plugins:/plugins"
-      - "./data/hardcore-advanced:/data"
+      - "./data/leber:/data"
     restart: unless-stopped
+
+  - service_name: fabric-creative
+    image: itzg/minecraft-server:java16
+    active: true
+    restricted: false
+    environment:
+      - "TYPE=FABRIC"
+      - "OVERRIDE_SERVER_PROPERTIES=true"
+      - "EULA=true"
+      - "ONLINE_MODE=false"
+      - "VERSION={{ mc_version }}"
+      - "MEMORY=1G"
+      - "OPS={{ mc_ops }}"
+      - "DIFFICULTY=peaceful"
+      - "PVP=false"
+      - "LEVEL=CreativeWorld"
+      - "LEVEL_TYPE=FLAT"
+      - "SPAWN_PROTECTION=0"
+      - "MAX_WORLD_SIZE=1000"
+      - "FORCE_GAMEMODE=true"
+      - "MODE=creative"
+      - "ENFORCE_WHITELIST=true"
+      - "REMOVE_OLD_MODS=true"
+      - "PLUGINS_SYNC_UPDATE=false"
+    # List mods to download below"
+    # - "MODS=https://ci.lucko.me/job/LuckPerms/1173/artifact/bukkit/build/libs/LuckPerms-Bukkit-5.2.8.jar"
+    volumes:
+      - "./fabric-mods:/mods"
+      - "./data/fabric-creative:/data"

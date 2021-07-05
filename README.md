@@ -1,6 +1,6 @@
 # mc-network
 
-Minecraft Server network using Ansible, Docker Containers, and possibly more in the future.
+Minecraft Server network using Ansible to build out a docker-compose file and copy configuration/plugins.
 
 ## Getting Started
 
@@ -8,7 +8,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-Ansible needs to be installed on the 'client' workstation, though in the current configuration both client and server are localhost.
+Ansible needs to be installed on the 'client' workstation.
 
 ```
 sudo apt install ansible
@@ -29,9 +29,9 @@ rm vars/vault.yaml
 ansible-vault create vars/vault.yaml
 ```
 
-it will prompt you for a password, go ahead and set it to whatever you like. You will need to enter this whenever you run the playbook in the future, so make sure its something you remember.
+it will prompt you for a password, go ahead and set it to whatever you like. You will need to enter this whenever you run the playbook in the future, so make sure its something you remember. Alternatively, you can use a password file or environment variables. Refer to Ansible documentation for that.
 
-Docker and docker-compose will need to be installed. There is a role in the playbook that should accomplish this on most os_families (currently commented out), but if you are like me and use Pop! OS you will need to accomplish this prior using the docker documentation (or modify the ansible role as needed).
+Docker and docker-compose will need to be installed. There is a role in the playbook that should accomplish this on most os_families (currently commented out).
 
 The included 'requirements.yml' file can be used to install the roles and collections that are used by ansible for this playbook. Run the following command to install them:
 
@@ -53,7 +53,7 @@ mc_whitelisted_players: 'Jeb_,Dinnerbone'
 
 ## Deployment
 
-To run the playbook on your local machine, simply type the following while in the working dir(assuming you have no inventory configured in /etc/ansible/hosts:
+To run the playbook on your local machine, simply type the following while in the working dir (assuming you have no inventory configured in /etc/ansible/hosts):
 
 ```
 ansible-playbook --ask-vault-pass playbook.yml

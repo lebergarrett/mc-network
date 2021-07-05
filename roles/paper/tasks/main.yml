@@ -14,7 +14,7 @@
 
 - name: Copy common paper/spigot plugins to remote directory (from local share)
   synchronize:
-    src: "/media/shared/misc/spigot-plugins/{{ item }}"
+    src: "{{ config_location }}/spigot-plugins/{{ item }}"
     dest: "{{ docker_compose_generator_output_path }}/plugins/{{ item }}"
     delete: yes
   loop:
@@ -23,12 +23,13 @@
     - "{{ LuckPerms }}"
     - "{{ ViaBackwards }}"
     - "{{ ViaVersion }}"
-    - "{{ WorldEdit }}"
-    - "{{ WorldGuard }}"
+    # Not currently updated to 1.17
+    #- "{{ WorldEdit }}"
+    #- "{{ WorldGuard }}"
 
 - name: Copy specific plugins to lobby server (from local share)
   synchronize:
-    src: "/media/shared/misc/spigot-plugins/{{ item }}"
+    src: "{{ config_location }}/spigot-plugins/{{ item }}"
     dest: "{{ docker_compose_generator_output_path }}/data/lobby/plugins/"
     delete: yes
   loop:
@@ -36,7 +37,7 @@
 
 - name: Copy specific plugins to leber server (from local share)
   synchronize:
-    src: "/media/shared/misc/spigot-plugins/{{ item }}"
+    src: "{{ config_location }}/spigot-plugins/{{ item }}"
     dest: "{{ docker_compose_generator_output_path }}/data/leber/plugins/"
     delete: yes
   loop:

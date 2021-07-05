@@ -4,14 +4,16 @@
     path: "{{ docker_compose_generator_output_path }}/bungee-plugins"
     state: directory
 
-- name: Create Geyser-BungeeCord(Waterfall) config directory
-  file:
-    path: "{{ docker_compose_generator_output_path }}/data/{{ item.service_name }}/plugins/Geyser-BungeeCord"
-    state: directory
-  loop: "{{ containers }}"
-  loop_control:
-    label: "{{ item.service_name }}"
-  when: item.image == 'itzg/bungeecord'
+# Geyser portions commented out because it has not been updated to 1.17
+
+# - name: Create Geyser-BungeeCord(Waterfall) config directory
+#   file:
+#     path: "{{ docker_compose_generator_output_path }}/data/{{ item.service_name }}/plugins/Geyser-BungeeCord"
+#     state: directory
+#   loop: "{{ containers }}"
+#   loop_control:
+#     label: "{{ item.service_name }}"
+#   when: item.image == 'itzg/bungeecord'
 
 - name: Configure waterfall proxy
   template:
@@ -24,19 +26,19 @@
     label: "{{ item.service_name }}"
   when: item.image == 'itzg/bungeecord'
 
-- name: Configure Geyser-BungeeCord(Waterfall)
-  template:
-    src: templates/geyser-config.yml.j2
-    dest: "{{docker_compose_generator_output_path }}/data/{{ item.service_name }}/plugins/Geyser-BungeeCord/config.yml"
-    owner: "{{ docker_compose_generator_uid }}"
-    group: "{{ docker_compose_generator_gid }}"
-  loop: "{{ containers }}"
-  loop_control:
-    label: "{{ item.service_name }}"
-  when: item.image == 'itzg/bungeecord'
+# - name: Configure Geyser-BungeeCord(Waterfall)
+#   template:
+#     src: templates/geyser-config.yml.j2
+#     dest: "{{docker_compose_generator_output_path }}/data/{{ item.service_name }}/plugins/Geyser-BungeeCord/config.yml"
+#     owner: "{{ docker_compose_generator_uid }}"
+#     group: "{{ docker_compose_generator_gid }}"
+#   loop: "{{ containers }}"
+#   loop_control:
+#     label: "{{ item.service_name }}"
+#   when: item.image == 'itzg/bungeecord'
 
 - name: Copy waterfall plugins to remote directory (from local share)
   synchronize:
-    src: /media/shared/misc/bungee-plugins/
+    src: "{{ config_location }}/bungee-plugins/"
     dest: "{{ docker_compose_generator_output_path }}/bungee-plugins"
     delete: yes
